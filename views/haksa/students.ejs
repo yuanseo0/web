@@ -1,3 +1,78 @@
 <div class="my-5">
-    <h1 class="text-center">학생관리</h1>
+    <h1 class="text-center my-5">학생관리</h1>
+    <div class="text-end mb-2">
+        <button class="btn btn-primary px-5">학생등록</button>
+    </div>
+    <!-- 테이블 태그 (id="tbl" 확인, 오타 수정됨) -->
+    <table id="tbl" class="table table-striped table-hover table-bordered"></table>
+
+    <!-- 핸들바 템플릿 -->
+    <script id="temp" type="text/x-handlebars-template">
+        <thead class="table-dark">
+            <tr>
+                <th>학번</th>
+                <th>성명</th>
+                <th>학과</th>
+                <th>생년월일</th>
+                <th>학년</th>
+                <th>지도교수</th>
+                <th>삭제</th>
+            </tr>
+        </thead>
+        <tbody>
+            {{#each .}}
+            <tr>
+                <td>{{SCODE}}</td>
+                <td>{{SNAME}}</td>
+                <td>{{DEPT}}</td>
+                <td>{{FDATE}}</td> <!-- SQL에서 지정한 이름 FDATE -->
+                <td>{{YEAR}}학년</td>
+                <td>{{PNAME}}({{ADVISOR}})</td>
+                <td><button scode="{{SCODE}}" sname="{{SNAME}}" class="btn btn-outline-danger btn-sm btn-delete">삭제</button>
+                </td>
+            </tr>
+            {{/each}}
+        </tbody>
+    </script>
 </div>
+
+<script>
+    getList();
+    $(".btn-primary").on("click", function(){
+        location.href = "/haksa/stu/insert";
+    });
+    function getList(){
+        $.ajax({
+            type: "get",
+            url: "/haksa/stu/list.json",
+            success: function(data){
+                // 1. 템플릿 컴파일
+                const temp = Handlebars.compile($("#temp").html());
+                // 2. #tbl에 데이터 밀어넣기
+                $("#tbl").html(temp(data));
+            },
+            error: function(err) {
+                console.log("에러 발생:", err);
+            }
+        });
+    }
+
+      $("#tbl").on("click", ".btn-delete", function(){
+        const scode=$(this).attr("scode");
+        const sname = $(this).attr("sname");
+        if(confirm(`${sname}(${scode}) 학생을 정말로 삭제하실래요?`)) {
+            $.ajax({
+                type:"post",
+                url:"/haksa/stu/delete",
+                data:{scode},
+                success:function(data){
+                    alert('삭제완료!');
+                    location.href='/haksa/stu';
+                },
+                error:function(){
+                    alert('삭제실패!');
+                }
+            });
+        }
+    });
+</script>
